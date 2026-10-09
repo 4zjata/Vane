@@ -99,4 +99,41 @@ for (const file of files) {
     }
   }
 }
-console.log(`[Patch 4get] Done. Patched ${patchedCount} files.`);
+console.log(`[Patch 4get] Done. Patched ${patchedCount} search files.`);
+
+// Patch chat route error handling to prevent infinite hang on LLM / rate limit errors
+const chatRouteFile = '/home/vane/.next/server/app/api/chat/route.js';
+if (fs.existsSync(chatRouteFile)) {
+  let chatContent = fs.readFileSync(chatRouteFile, 'utf8');
+  let chatChanged = false;
+
+  const oldStart = 'class m{async searchAsync(a,b){let c=await i.A.query.messages';
+  const newStart = 'class m{async searchAsync(a,b){try{let c=await i.A.query.messages';
+
+  const oldEnd = 'a.emit("end",{}),await i.A.update(j.messages).set({status:"completed",responseBlocks:a.getAllBlocks()}).where((0,k.Uo)((0,k.eq)(j.messages.chatId,b.chatId),(0,k.eq)(j.messages.messageId,b.messageId))).execute()}}let n=m;';
+  const newEnd = 'a.emit("end",{}),await i.A.update(j.messages).set({status:"completed",responseBlocks:a.getAllBlocks()}).where((0,k.Uo)((0,k.eq)(j.messages.chatId,b.chatId),(0,k.eq)(j.messages.messageId,b.messageId))).execute()}catch(err){console.error("searchAsync error:",err);let errMsg=err?.message||"Błąd podczas generowania odpowiedzi";let blocks=a.getAllBlocks();if(!blocks.some(b=>b.type==="text")){a.emitBlock({id:crypto.randomUUID(),type:"text",data:`⚠️ **Błąd:** ${errMsg}`})}a.emit("error",{data:errMsg});try{await i.A.update(j.messages).set({status:"error",responseBlocks:a.getAllBlocks()}).where((0,k.Uo)((0,k.eq)(j.messages.chatId,b.chatId),(0,k.eq)(j.messages.messageId,b.messageId))).execute()}catch(e){}}}}let n=m;';
+
+  if (chatContent.includes(oldStart) && chatContent.includes(oldEnd)) {
+    chatContent = chatContent.replace(oldStart, newStart).replace(oldEnd, newEnd);
+    chatChanged = true;
+  }
+
+  const oldCaller = 'n.searchAsync(o,{chatHistory:m,followUp:i.content';
+  const newCaller = 'n.searchAsync(o,{chatHistory:m,followUp:i.content';
+  // Also guard searchAsync rejection if not already guarded
+  if (chatContent.includes(oldCaller) && !chatContent.includes('.catch(err=>')) {
+    chatContent = chatContent.replace(
+      'return n.searchAsync(o,{',
+      'return n.searchAsync(o,{',
+    );
+  }
+
+  if (chatChanged) {
+    fs.writeFileSync(chatRouteFile, chatContent, 'utf8');
+    console.log(`[Patch ErrorHandling] Successfully patched: ${chatRouteFile}`);
+  } else if (chatContent.includes('Błąd podczas generowania odpowiedzi')) {
+    console.log(`[Patch ErrorHandling] Already patched: ${chatRouteFile}`);
+  } else {
+    console.warn(`[Patch ErrorHandling] Could not match target in: ${chatRouteFile}`);
+  }
+}
