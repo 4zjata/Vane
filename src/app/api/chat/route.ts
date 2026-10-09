@@ -184,7 +184,7 @@ export const POST = async (req: Request) => {
                 type: 'researchComplete',
               }) + '\n',
             ),
-          );
+          ).catch(() => {});
         }
       } else if (event === 'end') {
         writer.write(
@@ -193,8 +193,8 @@ export const POST = async (req: Request) => {
               type: 'messageEnd',
             }) + '\n',
           ),
-        );
-        writer.close();
+        ).catch(() => {});
+        writer.close().catch(() => {});
         session.removeAllListeners();
       } else if (event === 'error') {
         writer.write(
@@ -204,26 +204,33 @@ export const POST = async (req: Request) => {
               data: data.data,
             }) + '\n',
           ),
-        );
-        writer.close();
+        ).catch(() => {});
+        writer.close().catch(() => {});
         session.removeAllListeners();
       }
     });
 
-    agent.searchAsync(session, {
-      chatHistory: history,
-      followUp: message.content,
-      chatId: body.message.chatId,
-      messageId: body.message.messageId,
-      config: {
-        llm,
-        embedding: embedding,
-        sources: body.sources as SearchSources[],
-        mode: body.optimizationMode,
-        fileIds: body.files,
-        systemInstructions: body.systemInstructions || 'None',
-      },
-    });
+    agent
+      .searchAsync(session, {
+        chatHistory: history,
+        followUp: message.content,
+        chatId: body.message.chatId,
+        messageId: body.message.messageId,
+        config: {
+          llm,
+          embedding: embedding,
+          sources: body.sources as SearchSources[],
+          mode: body.optimizationMode,
+          fileIds: body.files,
+          systemInstructions: body.systemInstructions || 'None',
+        },
+      })
+      .catch((err) => {
+        console.error('Unhandled searchAsync error in route:', err);
+        session.emit('error', {
+          data: err?.message || 'Search execution failed.',
+        });
+      });
 
     ensureChatExists({
       id: body.message.chatId,
@@ -234,7 +241,7 @@ export const POST = async (req: Request) => {
 
     req.signal.addEventListener('abort', () => {
       disconnect();
-      writer.close();
+      writer.close().catch(() => {});
     });
 
     return new Response(responseStream.readable, {
