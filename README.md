@@ -24,7 +24,7 @@ Want to know more about its architecture and how it works? You can read it [here
 
 🧩 **Widgets** - Helpful UI cards that show up when relevant, like weather, calculations, stock prices, and other quick lookups.
 
-🔍 **Web search powered by SearxNG** - Access multiple search engines while keeping your identity private. Support for Tavily and Exa coming soon for even better results.
+🔍 **Web search powered by 4get & SearXNG** - Native support for the privacy-friendly 4get metasearch engine (default) alongside SearXNG, with automatic fallback and full multi-engine scraper flexibility.
 
 📷 **Image and video search** - Find visual content alongside text results. Search isn't limited to just articles anymore.
 

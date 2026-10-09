@@ -27,6 +27,10 @@ else
 fi
 
 cd /home/vane
-echo "Starting Vane..."
+if [ -f /home/vane/patch-4get.js ]; then
+  echo "Applying 4get search engine patch..."
+  node /home/vane/patch-4get.js
+fi
 
+echo "Starting Vane..."
 exec node server.js

@@ -17,6 +17,9 @@ class ConfigManager {
     personalization: {},
     modelProviders: [],
     search: {
+      provider: '4get',
+      fourgetURL: 'http://4get-app',
+      fourgetScraper: 'ddg',
       searxngURL: '',
     },
   };
@@ -103,12 +106,52 @@ class ConfigManager {
     modelProviders: [],
     search: [
       {
+        name: 'Search Engine Provider',
+        key: 'provider',
+        type: 'select',
+        options: [
+          { name: '4get (Recommended)', value: '4get' },
+          { name: 'SearXNG', value: 'searxng' },
+          { name: 'Auto (4get, fallback to SearXNG)', value: 'auto' },
+        ],
+        required: false,
+        description:
+          'Choose which search engine backend to use for web and media research.',
+        default: '4get',
+        scope: 'server',
+        env: 'SEARCH_PROVIDER',
+      },
+      {
+        name: '4get URL',
+        key: 'fourgetURL',
+        type: 'string',
+        required: false,
+        description:
+          'The URL of your 4get instance (e.g. http://4get-app or http://localhost:7890)',
+        placeholder: 'http://4get-app',
+        default: 'http://4get-app',
+        scope: 'server',
+        env: 'FOURGET_URL',
+      },
+      {
+        name: '4get Default Scraper',
+        key: 'fourgetScraper',
+        type: 'string',
+        required: false,
+        description:
+          'Preferred scraper for 4get (e.g. ddg, brave, yandex, google, startpage)',
+        placeholder: 'ddg',
+        default: 'ddg',
+        scope: 'server',
+        env: 'FOURGET_SCRAPER',
+      },
+      {
         name: 'SearXNG URL',
         key: 'searxngURL',
         type: 'string',
         required: false,
         description: 'The URL of your SearXNG instance',
-        placeholder: 'http://localhost:4000',
+        placeholder: 'http://localhost:8080',
         default: '',
         scope: 'server',
         env: 'SEARXNG_API_URL',

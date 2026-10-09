@@ -1,4 +1,9 @@
-import { getSearxngURL } from './config/serverRegistry';
+import {
+  getSearxngURL,
+  getSearchProvider,
+  getFourgetURL,
+} from './config/serverRegistry';
+import { search4get, SearchResult as FourgetResult } from './fourget';
 
 export interface SearxngSearchOptions {
   categories?: string[];
@@ -7,23 +12,13 @@ export interface SearxngSearchOptions {
   pageno?: number;
 }
 
-interface SearxngSearchResult {
-  title: string;
-  url: string;
-  img_src?: string;
-  thumbnail_src?: string;
-  thumbnail?: string;
-  content?: string;
-  author?: string;
-  iframe_src?: string;
-}
+export type SearxngSearchResult = FourgetResult;
 
-export const searchSearxng = async (
+export const searchSearxngRaw = async (
   query: string,
   opts?: SearxngSearchOptions,
-) => {
-  const searxngURL = getSearxngURL();
-
+): Promise<{ results: SearxngSearchResult[]; suggestions: string[] }> => {
+  const searxngURL = getSearxngURL() || process.env.SEARXNG_API_URL || 'http://localhost:8080';
   const url = new URL(`${searxngURL}/search?format=json`);
   url.searchParams.append('q', query);
 
@@ -51,9 +46,8 @@ export const searchSearxng = async (
     }
 
     const data = await res.json();
-
-    const results: SearxngSearchResult[] = data.results;
-    const suggestions: string[] = data.suggestions;
+    const results: SearxngSearchResult[] = data.results || [];
+    const suggestions: string[] = data.suggestions || [];
 
     return { results, suggestions };
   } catch (err: any) {
@@ -65,3 +59,36 @@ export const searchSearxng = async (
     clearTimeout(timeoutId);
   }
 };
+
+export const searchSearxng = async (
+  query: string,
+  opts?: SearxngSearchOptions,
+): Promise<{ results: SearxngSearchResult[]; suggestions: string[] }> => {
+  const provider = (getSearchProvider() || 'auto').toLowerCase();
+
+  if (provider === '4get') {
+    return search4get(query, opts);
+  }
+
+  if (provider === 'searxng') {
+    return searchSearxngRaw(query, opts);
+  }
+
+  // Auto mode: try 4get first, fallback to SearXNG
+  try {
+    const fourgetRes = await search4get(query, opts);
+    if (fourgetRes.results && fourgetRes.results.length > 0) {
+      return fourgetRes;
+    }
+    // If 4get returned empty results, try SearXNG as fallback
+    return await searchSearxngRaw(query, opts);
+  } catch (fourgetErr) {
+    console.warn(
+      `[Search] 4get search failed, falling back to SearXNG: ${fourgetErr}`,
+    );
+    return searchSearxngRaw(query, opts);
+  }
+};
+
+export { search4get };
+export default searchSearxng;

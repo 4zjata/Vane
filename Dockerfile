@@ -73,5 +73,8 @@ RUN echo "searxng ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 EXPOSE 3000 8080
 
 ENV SEARXNG_API_URL=http://localhost:8080
+ENV SEARCH_PROVIDER=auto
+ENV FOURGET_URL=http://4get-app
+ENV FOURGET_SCRAPER=ddg
 
 CMD ["/home/vane/entrypoint.sh"]

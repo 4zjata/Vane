@@ -1,14 +1,38 @@
 services:
   vane:
     image: itzcrazykns1337/vane:latest
-    build:
-      context: .
+    container_name: vane
+    entrypoint: ["/home/vane/entrypoint.sh"]
     ports:
-      - '3000:3000'
+      - "3050:3000"
+    environment:
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+      - OPENAI_API_KEY=5QmVasw9oXlcHG49
+      - OPENAI_BASE_URL=http://perplexity-proxy:8085/v1
+      - SEARCH_PROVIDER=4get
+      - FOURGET_URL=http://4get-app
+      - FOURGET_SCRAPER=ddg
     volumes:
-      - data:/home/vane/data
+      - vane-data:/home/vane/data
+      - ./searxng-settings.yml:/etc/searxng/settings.yml:ro
+      - ./patch-4get.js:/home/vane/patch-4get.js:ro
+      - ./entrypoint.sh:/home/vane/entrypoint.sh:ro
+    networks:
+      - default
+      - per-api-network
+      - fourget-network
     restart: unless-stopped
 
+networks:
+  default:
+  per-api-network:
+    external: true
+    name: per-api_default
+  fourget-network:
+    external: true
+    name: 4get_default
+
 volumes:
-  data:
-    name: 'vane-data'
+  vane-data:
+    name: vane-data

@@ -1,0 +1,73 @@
+use_default_settings: true
+
+general:
+  instance_name: 'searxng'
+
+search:
+  autocomplete: 'google'
+  formats:
+    - html
+    - json
+
+server:
+  secret_key: 'a2fb23f1b02e6ee83875b09826990de0f6bd908b6638e8c10277d415f6ab852b'
+
+engines:
+  - name: bing
+    engine: bing
+    shortcut: bi
+    categories: general
+    disabled: false
+    weight: 10
+
+  - name: bing news
+    engine: bing_news
+    shortcut: bin
+    categories: [general, news]
+    disabled: false
+    weight: 5
+
+  - name: yandex
+    engine: yandex
+    shortcut: yd
+    categories: general
+    disabled: false
+    weight: 5
+
+  - name: seznam
+    engine: seznam
+    shortcut: szn
+    categories: general
+    disabled: false
+    weight: 3
+
+  - name: wikipedia
+    engine: wikipedia
+    categories: general
+    disabled: false
+
+  - name: wikidata
+    engine: wikidata
+    categories: general
+    disabled: false
+
+  - name: duckduckgo
+    disabled: true
+
+  - name: brave
+    disabled: true
+
+  - name: startpage
+    disabled: true
+
+  - name: karmasearch
+    disabled: true
+
+  - name: karmasearch videos
+    disabled: true
+
+  - name: aol
+    disabled: true
+
+  - name: wolframalpha
+    disabled: true
